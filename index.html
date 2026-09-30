@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Route Algorithm Lab</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="panel-container">
+            <header>
+                <h1>Algorithm Course</h1>
+                <p>Sort destinations, make a greedy choice, and find a path on the graph.</p>
+                <a class="student-page-link" href="student-assignment.html">Student Assignment →</a>
+            </header>
+
+            <div class="control-panel">
+                <h2>Controls</h2>
+                <div class="control-group">
+                    <label for="sortingAlgorithm">Sorting Algorithm</label>
+                    <select id="sortingAlgorithm">
+                        <option value="bubble">Bubble Sort</option>
+                        <option value="selection">Selection Sort</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="algorithm">Algorithm</label>
+                    <select id="algorithm">
+                        <option value="bfs">BFS</option>
+                        <option value="astar">A*</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="goalCount">Destinations: <span id="goalCountValue">5</span></label>
+                    <input type="range" id="goalCount" min="2" max="8" value="5">
+                </div>
+                <div class="control-group">
+                    <label for="gridSize">Grid Size: <span id="gridSizeValue">10</span></label>
+                    <input type="range" id="gridSize" min="10" max="100" value="10">
+                </div>
+                <div class="control-group">
+                    <label for="wallRatio">Wall Ratio: <span id="wallRatioValue">0.28</span></label>
+                    <input type="range" id="wallRatio" min="0" max="0.45" step="0.01" value="0.28">
+                </div>
+                <div class="control-row animation-controls">
+                    <div class="control-group">
+                        <label for="animationSpeed">Animation Speed: <span id="animationSpeedValue">0</span></label>
+                        <input type="range" id="animationSpeed" min="-1" max="1" step="1" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="nodesPerStep">Nodes per Step: <span id="nodesPerStepValue">1</span></label>
+                        <input type="range" id="nodesPerStep" min="1" max="50" value="1">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button id="generateMapBtn">Generate New Map</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="assignment-panel assignment-top">
+            <h2>Assignment Steps</h2>
+            <ol>
+                <li><strong>Sorting</strong><code>bubbleSort / selectionSort</code></li>
+                <li><strong>Greedy</strong><code>chooseNextDestination</code></li>
+                <li><strong>Graph</strong><code>findPath (BFS / A*)</code></li>
+            </ol>
+            <!-- <p>Complete <code>StudentAlgorithms</code> in <code>app.js</code>.</p> -->
+        </div>
+
+        <aside class="right-sidebar">
+        <div class="info-panel">
+                <h2>Information</h2>
+                <div class="info-grid">
+                    <div>Algorithm:</div><div id="info-algorithm">-</div>
+                    <div>Sorting:</div><div id="info-sorting">-</div>
+                    <div>Sorted priorities:</div><div id="info-sortedGoals">-</div>
+                    <div>Greedy choice:</div><div id="info-selectedGoal">-</div>
+                    <div>Grid Size:</div><div id="info-gridSize">-</div>
+                    <div>Wall Ratio:</div><div id="info-wallRatio">-</div>
+                    <div>Start:</div><div id="info-startPos">-</div>
+                    <div>Destinations:</div><div id="info-goalPos">-</div>
+                    <div>Status:</div><div id="info-status">Ready</div>
+                    <div>Path Found:</div><div id="info-pathFound">-</div>
+                    <div>Path Length:</div><div id="info-pathLength">-</div>
+                    <div>Expanded Nodes:</div><div id="info-expandedNodes">-</div>
+                    <div>Frontier Size:</div><div id="info-frontierSize">-</div>
+                    <div>Max Frontier:</div><div id="info-maxFrontierSize">-</div>
+                    <div>Search Runtime:</div><div id="info-searchRuntime">-</div>
+                </div>
+        </div>
+
+        <div class="legend">
+            <h2>Legend</h2>
+            <ul>
+                <li><span class="legend-color" style="--color: var(--color-start);"></span> Start</li>
+                <li class="legend-destination"><span class="legend-color" style="--color: var(--color-goal);"></span> Selected Goal</li>
+                <li class="legend-destination"><span class="legend-color" style="--color: var(--color-goal-inactive);"></span> Other</li>
+                <li><span class="legend-color" style="--color: var(--color-wall);"></span> Wall</li>
+                <li><span class="legend-color" style="--color: var(--color-frontier);"></span> Frontier</li>
+                <li><span class="legend-color" style="--color: var(--color-explored);"></span> Explored</li>
+                <li><span class="legend-color" style="--color: var(--color-current);"></span> Current</li>
+                <li><span class="legend-color" style="--color: var(--color-path);"></span> Final Path</li>
+                <li><span class="legend-color" style="--color: var(--color-agent);"></span> Agent</li>
+            </ul>
+        </div>
+        </aside>
+
+        <div class="canvas-container">
+            <div class="sort-visualization" aria-live="polite">
+                <div class="sort-visualization-header">
+                    <strong>Sorting Visualization <small>(number = priority)</small></strong>
+                    <span id="sortStatus">Generate a map to see destination priorities.</span>
+                </div>
+                <div id="sortItems" class="sort-items"></div>
+                <div id="sortHistory" class="sort-history" aria-label="Sorting step history"></div>
+            </div>
+            <div class="algorithm-playback-controls sorting-playback-controls">
+                <button id="sortStepBtn" disabled>Step</button>
+                <button id="visualizeSortBtn" class="primary-visualize-button">All Start</button>
+                <button id="sortPauseBtn" disabled>Pause</button>
+                <button id="sortResumeBtn" disabled>Resume</button>
+                <button id="sortResetBtn" disabled>Reset</button>
+            </div>
+            <div class="complexity-card sorting-complexity-card">
+                <h2><span>Sorting Complexity</span><strong id="sort-complexity-algorithm">-</strong></h2>
+                <div class="complexity-primary">
+                    <span>Time <strong id="sort-complexity-time">-</strong></span>
+                    <span>Space <strong id="sort-complexity-space">-</strong></span>
+                </div>
+                <div class="complexity-grid">
+                    <span>Input (n)</span><strong id="sort-actual-input">-</strong>
+                    <span>Comparisons</span><strong id="sort-actual-comparisons">-</strong>
+                    <span>Swaps</span><strong id="sort-actual-swaps">-</strong>
+                    <span>Total operations</span><strong id="sort-complexity-operations">-</strong>
+                </div>
+            </div>
+            <div class="canvas-stage">
+                <div id="error-message" class="error-message canvas-error" style="display: none;"></div>
+                <canvas id="pathfindingCanvas"></canvas>
+            </div>
+            <div class="algorithm-playback-controls path-playback-controls">
+                <button id="stepBtn" disabled>Step</button>
+                <button id="startBtn" class="primary-visualize-button">All Start</button>
+                <button id="pauseBtn" disabled>Pause</button>
+                <button id="resumeBtn" disabled>Resume</button>
+                <button id="resetBtn" disabled>Reset</button>
+            </div>
+            <div class="complexity-card path-complexity-card">
+                <h2><span>Path Finding Complexity</span><strong id="path-complexity-algorithm">-</strong></h2>
+                <div class="complexity-primary">
+                    <span>Time <strong id="path-complexity-time">-</strong></span>
+                    <span>Space <strong id="path-complexity-space">-</strong></span>
+                </div>
+                <div class="complexity-grid">
+                    <span>Vertices (V)</span><strong id="path-actual-vertices">-</strong>
+                    <span>Edges (E)</span><strong id="path-actual-edges">-</strong>
+                    <span>Expanded</span><strong id="path-actual-expanded">-</strong>
+                    <span>Max frontier</span><strong id="path-actual-frontier">-</strong>
+                    <span>Runtime</span><strong id="path-actual-runtime">-</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="visualizer-core.js"></script>
+</body>
+</html>
