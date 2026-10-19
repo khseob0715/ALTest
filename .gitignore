@@ -1,0 +1,8 @@
+# Local reference solutions; do not publish with the student assignment.
+/student-heap-sort.js
+/student-insertion-sort.js
+/student-merge-sort.js
+/student-quick-sort.js
+
+# Local slide previews generated while preparing the presentation.
+/.ppt-preview/

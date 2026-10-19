@@ -1388,28 +1388,16 @@ document.addEventListener('DOMContentLoaded', () => {
             this.animationController.setSpeed(this.animationController.speed, parseInt(value));
         }
 
-        renderSortItems(items, activeIndices = [], action = '', fixedIndices = [], animate = false) {
-            const previousPositions = new Map();
-            this.dom.sortItems.querySelectorAll('.sort-item').forEach(item => {
-                previousPositions.set(Number(item.dataset.goalId), item.getBoundingClientRect());
-            });
-
-            const existingItems = new Map(
-                [...this.dom.sortItems.querySelectorAll('.sort-item')]
-                    .map(item => [Number(item.dataset.goalId), item])
-            );
-
-            const currentIds = new Set(items.map(item => item.id));
-            existingItems.forEach((element, id) => {
-                if (!currentIds.has(id)) {
-                    element.remove();
-                    existingItems.delete(id);
-                }
-            });
+        renderSortItems(items, activeIndices = [], action = '', fixedIndices = []) {
+            // A write can temporarily put the same destination in multiple slots.
+            // Keep one DOM element per array index rather than per destination ID.
+            const existingItems = [...this.dom.sortItems.querySelectorAll('.sort-item')];
+            existingItems.slice(items.length).forEach(element => element.remove());
 
             items.forEach((goal, index) => {
-                const item = existingItems.get(goal.id) || document.createElement('div');
+                const item = existingItems[index] || document.createElement('div');
                 item.className = 'sort-item';
+                item.dataset.index = index;
                 item.dataset.goalId = goal.id;
                 if (activeIndices.includes(index)) item.classList.add(`is-${action}`);
                 if (fixedIndices.includes(index)) item.classList.add('is-fixed');
@@ -1430,21 +1418,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.dom.sortItems.appendChild(item);
             });
 
-            if (!animate || previousPositions.size === 0) return;
-
-            this.dom.sortItems.querySelectorAll('.sort-item').forEach(item => {
-                const previous = previousPositions.get(Number(item.dataset.goalId));
-                if (!previous) return;
-                const current = item.getBoundingClientRect();
-                const deltaX = previous.left - current.left;
-                if (deltaX === 0) return;
-                item.style.transition = 'none';
-                item.style.transform = `translateX(${deltaX}px)`;
-                requestAnimationFrame(() => requestAnimationFrame(() => {
-                    item.style.transition = 'transform 260ms ease, background-color 150ms, border-color 150ms';
-                    item.style.transform = 'translateX(0)';
-                }));
-            });
         }
 
         resetSortHistory(items = []) {
@@ -1499,7 +1472,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Initial is the baseline display, not an algorithm operation;
                 // the first Step proceeds to the first comparison.
                 if (standalone && step.action !== 'initial' && !(await this.waitForSortPermission())) return false;
-                this.renderSortItems(step.items, step.indices, step.action, step.fixedIndices, step.action === 'swap');
+                this.renderSortItems(step.items, step.indices, step.action, step.fixedIndices);
                 this.appendSortHistoryStep(step);
                 const activeGoals = step.indices.map(index => `G${step.items[index].id}`).join(' & ');
                 this.dom.sortStatus.textContent = activeGoals
